@@ -71,12 +71,13 @@ volumes:
 
 ## Theme Development
 
-This environment comes with the Neve theme and a child theme template pre-configured. The child theme is located in `neve-child/` and is automatically mounted in the WordPress container.
+This environment comes with the Neve theme and a pre-configured child theme for immediate development.
 
-To make changes to the child theme:
-1. Edit files in the `neve-child` directory
-2. Changes will be immediately reflected in your WordPress environment
-3. Use the WordPress Customizer for theme settings
+### Using the Child Theme
+1. The child theme is automatically mounted and activated
+2. Edit files in the `neve-child` directory
+3. Changes are immediately reflected in your environment
+4. Use the WordPress Customizer for theme settings
 
 ## Clean Up
 
@@ -112,37 +113,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [WordPress](https://wordpress.org/)
 - [Docker](https://www.docker.com/)
 - [MailHog](https://github.com/mailhog/MailHog)
-
-## Development Templates
-
-This repository includes a starter template for WordPress plugin development:
-
-### Plugin Template
-Located in `/templates/plugin-template/`, includes:
-- Standard WordPress.org plugin structure
-- Internationalization support
-- Admin hooks setup
-- Public hooks setup
-- Basic plugin class architecture
-
-To use:
-```bash
-cp -r templates/plugin-template my-new-plugin
-```
-
-### Mounting Your Plugin
-Add to docker-compose.yml:
-```yaml
-volumes:
-  - ./my-new-plugin/trunk/:/var/www/html/wp-content/plugins/my-new-plugin
-```
-
-## Theme Development
-
-This environment comes with the Neve theme and a child theme template pre-configured. The child theme is located in `neve-child/` and is automatically mounted in the WordPress container.
-
-To make changes to the child theme:
-1. Edit files in the `neve-child` directory
-2. Changes will be immediately reflected in your WordPress environment
-3. Use the WordPress Customizer for theme settings
-
+- [Neve Theme](https://themeisle.com/themes/neve/)

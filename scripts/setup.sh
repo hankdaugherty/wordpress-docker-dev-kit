@@ -9,6 +9,9 @@
 #   chmod +x scripts/setup.sh
 #   ./scripts/setup.sh
 
+# Make teardown script executable
+chmod +x scripts/teardown.sh
+
 # Start Docker containers
 echo "Starting Docker containers..."
 docker-compose up -d

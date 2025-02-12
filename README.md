@@ -18,7 +18,32 @@ A streamlined WordPress development environment using Docker, with automated SMT
 ## Quick Start
 
 1. Clone this repository
-2. Run the setup script:
+
+2. Create your environment file:
+```bash
+cp env.example .env
+```
+
+3. Edit `.env` and replace the example values:
+```env
+# Database Credentials
+MYSQL_ROOT_PASSWORD=your_secure_password
+DB_NAME=wordpress
+WORDPRESS_DB_USER=root
+WORDPRESS_DB_PASSWORD=your_secure_password
+WORDPRESS_DB_HOST=db:3306
+
+# WordPress Admin Credentials
+WORDPRESS_ADMIN_USER=your_admin_username
+WORDPRESS_ADMIN_PASSWORD=your_secure_admin_password
+WORDPRESS_ADMIN_EMAIL=your.email@example.com
+
+# Leave these as is unless you know what you're doing
+UID=1000
+GID=1000
+```
+
+4. Run the setup script:
 ```bash
 chmod +x scripts/setup.sh
 ./scripts/setup.sh

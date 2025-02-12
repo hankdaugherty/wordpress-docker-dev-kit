@@ -9,6 +9,14 @@
 #   chmod +x scripts/setup.sh
 #   ./scripts/setup.sh
 
+# Check for .env file
+if [ ! -f .env ]; then
+    echo "Error: .env file not found!"
+    echo "Please copy env.example to .env and update the values:"
+    echo "cp env.example .env"
+    exit 1
+fi
+
 # Make teardown script executable
 chmod +x scripts/teardown.sh
 
@@ -17,7 +25,7 @@ echo "Starting Docker containers..."
 docker-compose up -d
 
 echo "Waiting for the database to be ready..."
-sleep 15
+sleep 20
 
 # Create wp-app directory with proper permissions if it doesn't exist
 echo "Creating wp-app directory..."
@@ -40,4 +48,7 @@ docker-compose run --rm wpcli /bin/sh -c "
     chown -R www-data:www-data /var/www/html/wp-content/mu-plugins
 "
 
-echo "Setup complete. WordPress core files and custom plugins are now available." 
+echo "Setup complete! Your development environment is ready."
+echo "WordPress: http://localhost:8000"
+echo "phpMyAdmin: http://localhost:8080"
+echo "MailHog: http://localhost:8025"

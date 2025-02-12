@@ -83,7 +83,6 @@ This environment comes with the Neve theme and a pre-configured child theme for 
 
 To remove all containers and generated files:
 ```bash
-chmod +x scripts/teardown.sh
 ./scripts/teardown.sh
 ```
 

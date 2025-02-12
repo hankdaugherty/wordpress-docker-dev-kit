@@ -1,0 +1,118 @@
+services:
+  wp:
+    image: wordpress:latest # https://hub.docker.com/_/wordpress/
+    # Run as root for easier file manipulation (custom UID/GID override removed)
+    # user: "${UID:-1000}:${GID:-1000}"  # Removed to run as root
+    ports:
+      - "8000:80"
+    volumes:
+      - ./config/wp_php.ini:/usr/local/etc/php/conf.d/conf.ini
+      - ./wp-app:/var/www/html
+      #- ./plugin-name/trunk/:/var/www/html/wp-content/plugins/plugin-name # Plugin development
+      #- ./theme-name/trunk/:/var/www/html/wp-content/themes/theme-name # Theme development
+      - ./config/apache_servername.conf:/etc/apache2/conf-available/apache_servername.conf
+    environment:
+      WORDPRESS_DB_HOST: "db:3306"
+      WORDPRESS_DB_NAME: "${DB_NAME}"
+      WORDPRESS_DB_USER: root
+      WORDPRESS_DB_PASSWORD: "${WORDPRESS_DB_PASSWORD}"
+      WORDPRESS_DEBUG: 1
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_DEBUG_LOG', true);
+        define('WP_DEBUG_DISPLAY', false);
+    command: |
+      bash -c '
+        a2enconf apache_servername >/dev/null 2>&1
+        # If /var/www/html is empty, copy core files from the image
+        if [ -z "$(ls -A /var/www/html)" ]; then
+          echo "Directory is empty. Copying WordPress core files..."
+          cp -rT /usr/src/wordpress /var/www/html
+        fi
+        # Ensure required subdirectories exist
+        mkdir -p /var/www/html/wp-content/uploads
+        mkdir -p /var/www/html/wp-content/plugins
+        mkdir -p /var/www/html/wp-content/themes
+        # Set permissions
+        chown -R www-data:www-data /var/www/html || true
+        find /var/www/html -type d -exec chmod 755 {} \; || true
+        find /var/www/html -type f -exec chmod 644 {} \; || true
+        apache2-foreground
+      '
+    depends_on:
+      - db
+    networks:
+      - wordpress_network
+
+  wpcli:
+    image: wordpress:cli
+    user: root  # Run as root to install plugins/themes
+    volumes:
+      - ./config:/var/www/config
+      - ./config/docker-php.ini:/usr/local/etc/php/conf.d/docker-php.ini
+      - ./wp-app:/var/www/html
+      - ./neve-child:/tmp/neve-child
+      - ./config/wp-cli.yml:/var/www/wp-cli.yml
+    env_file:
+      - .env
+    networks:
+      - wordpress_network
+    command: >
+      /bin/sh -c "
+      echo 'Waiting for database connection...';
+      until nc -z db 3306; do sleep 1; done;
+      sleep 2;
+      if [ ! -f /var/www/html/wp-config.php ]; then
+        echo 'wp-config.php not found. Creating it now...';
+        wp config create --dbname=$${DB_NAME} --dbuser=$${WORDPRESS_DB_USER} --dbpass=$${WORDPRESS_DB_PASSWORD} --dbhost=$${WORDPRESS_DB_HOST} --allow-root --extra-php=\"if ( ! defined('FS_CHMOD_FILE') ) { define('FS_CHMOD_FILE', 0644 ); }\";
+      fi;
+      wp core is-installed --allow-root || \
+      wp core install --url=localhost:8000 --title='My WordPress Site' --admin_user=$${WORDPRESS_ADMIN_USER} --admin_password=$${WORDPRESS_ADMIN_PASSWORD} --admin_email=$${WORDPRESS_ADMIN_EMAIL} --skip-email --allow-root;
+      wp theme install neve --activate --allow-root;
+      if [ ! -d /var/www/html/wp-content/themes/neve-child ]; then
+        mkdir -p /var/www/html/wp-content/themes/neve-child;
+        cp -r /tmp/neve-child/* /var/www/html/wp-content/themes/neve-child/;
+      fi;
+      wp theme activate neve-child --allow-root;
+      wp plugin install advanced-custom-fields wpforms-lite redirection google-site-kit query-monitor wp-optimize duplicate-post wp-mail-smtp --activate --allow-root
+      "
+
+  pma:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+    volumes:
+      - ./config/apache_servername.conf:/etc/apache2/conf-available/apache_servername.conf
+    command: /bin/sh -c "a2enconf apache_servername >/dev/null 2>&1 && apache2-foreground"
+    networks:
+      - wordpress_network
+
+  db:
+    image: mysql:5.7
+    volumes:
+      - ./wp-data:/var/lib/mysql
+      - ./config/mysql.cnf:/etc/mysql/conf.d/custom.cnf
+    env_file:
+      - .env
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+    networks:
+      - wordpress_network
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - wordpress_network
+
+volumes:
+  db_data:
+
+networks:
+  wordpress_network:
+    driver: bridge
+

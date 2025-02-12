@@ -1,0 +1,46 @@
+# WordPress core files
+wp-app/*
+!wp-app/wp-content/
+wp-app/wp-content/*
+!wp-app/wp-content/plugins/
+!wp-app/wp-content/themes/
+!wp-app/wp-content/mu-plugins/
+
+# But do track specific plugins/themes you're developing
+wp-app/wp-content/plugins/*
+!wp-app/wp-content/plugins/your-plugin-name/
+
+wp-app/wp-content/themes/*
+!wp-app/wp-content/themes/your-theme-name/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Database exports
+*.sql
+
+# Logs
+logs/*
+!logs/.gitkeep
+
+# Editor files
+.vscode/*
+!.vscode/launch.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Scripts
+docker-compose-down.sh

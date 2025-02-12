@@ -1,8 +1,23 @@
 # WordPress Docker Development Environment
 
-A streamlined WordPress development environment using Docker, with automated SMTP configuration for email testing.
+A streamlined WordPress development environment using Docker, with automated SMTP configuration for email testing and a curated set of pre-installed plugins and themes.
 
 *Based on the excellent [wordpress-docker-compose](https://github.com/nezhar/wordpress-docker-compose) by [nezhar](https://github.com/nezhar).*
+
+## Using This Template
+
+This is a template repository. To start a new project:
+
+1. Click the "Use this template" button at the top of this repository
+2. Name your new project and create your repository
+3. Clone your new repository
+4. Copy the environment file: `cp env.example .env`
+5. Update the variables in `.env` with your preferred settings
+6. Run the setup script:
+```bash
+chmod +x scripts/setup.sh
+./scripts/setup.sh
+```
 
 ## Features
 
@@ -14,40 +29,6 @@ A streamlined WordPress development environment using Docker, with automated SMT
 - Automated SMTP configuration
 - Pre-installed theme and plugins
 - Child theme template
-
-## Quick Start
-
-1. Clone this repository
-
-2. Create your environment file:
-```bash
-cp env.example .env
-```
-
-3. Edit `.env` and replace the example values:
-```env
-# Database Credentials
-MYSQL_ROOT_PASSWORD=your_secure_password
-DB_NAME=wordpress
-WORDPRESS_DB_USER=root
-WORDPRESS_DB_PASSWORD=your_secure_password
-WORDPRESS_DB_HOST=db:3306
-
-# WordPress Admin Credentials
-WORDPRESS_ADMIN_USER=your_admin_username
-WORDPRESS_ADMIN_PASSWORD=your_secure_admin_password
-WORDPRESS_ADMIN_EMAIL=your.email@example.com
-
-# Leave these as is unless you know what you're doing
-UID=1000
-GID=1000
-```
-
-4. Run the setup script:
-```bash
-chmod +x scripts/setup.sh
-./scripts/setup.sh
-```
 
 ## Access Your Development Environment
 
@@ -108,6 +89,7 @@ This environment comes with the Neve theme and a pre-configured child theme for 
 
 To remove all containers and generated files:
 ```bash
+chmod +x scripts/teardown.sh
 ./scripts/teardown.sh
 ```
 

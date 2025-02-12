@@ -16,8 +16,9 @@ fi
 echo "Stopping Docker containers and removing volumes..."
 docker-compose down -v
 
-# Remove the wp-app and wp-data directories
+# Remove WordPress files and MySQL data from the wp-app and wp-data directories
 echo "Removing wp-app and wp-data directories..."
-rm -rf wp-app wp-data
+sudo rm -rf wp-app
+sudo rm -rf wp-data
 
-echo "Teardown complete." 
+echo "Teardown complete."

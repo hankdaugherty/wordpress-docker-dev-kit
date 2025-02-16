@@ -69,7 +69,7 @@ services:
       
       if [ ! -f /var/www/html/wp-config.php ]; then
         echo "wp-config.php not found. Creating it now...";
-        wp config create --dbname="$${MYSQL_DATABASE}" --dbuser="$${MYSQL_USER}" --dbpass="$${MYSQL_PASSWORD}" --dbhost="$${WORDPRESS_DB_HOST}" --allow-root --extra-php="if ( ! defined('\''FS_CHMOD_FILE'\'') ) { define('\''FS_CHMOD_FILE'\'', 0644 ); }";
+        wp config create --dbname="$${DB_NAME}" --dbuser="$${WORDPRESS_DB_USER}" --dbpass="$${WORDPRESS_DB_PASSWORD}" --dbhost="$${WORDPRESS_DB_HOST}" --allow-root --extra-php="if ( ! defined('\''FS_CHMOD_FILE'\'') ) { define('\''FS_CHMOD_FILE'\'', 0644 ); }";
       fi;
       
       wp core is-installed --allow-root || wp core install --url=localhost:8000 --title="My WordPress Site" --admin_user="$${WORDPRESS_ADMIN_USER}" --admin_password="$${WORDPRESS_ADMIN_PASSWORD}" --admin_email="$${WORDPRESS_ADMIN_EMAIL}" --skip-email --allow-root;
@@ -95,11 +95,6 @@ services:
         wp-mail-smtp \
         --activate --allow-root;
       '
-    environment:
-      WORDPRESS_DB_HOST: db
-      WORDPRESS_DB_USER: root
-      WORDPRESS_DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
 
   pma:
     image: phpmyadmin/phpmyadmin:5.2
@@ -119,15 +114,16 @@ services:
   db:
     image: mysql:5.7
     volumes:
-      - db_data:/var/lib/mysql
-    restart: unless-stopped
+      - mysql_data:/var/lib/mysql
+      - ./config/mysql.cnf:/etc/mysql/conf.d/custom.cnf
+    env_file:
+      - .env
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
     networks:
       - wordpress_network
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 5s
@@ -141,7 +137,7 @@ services:
     restart: unless-stopped
 
 volumes:
-  db_data:  # Named volume for database persistence
+  mysql_data:  # Named volume for database persistence
 
 networks:
   wordpress_network:

@@ -1,117 +1,172 @@
 # WordPress Docker Development Environment
 
-A streamlined WordPress development environment using Docker, with automated SMTP configuration for email testing and a curated set of pre-installed plugins and themes.
-
+A streamlined WordPress development environment using Docker, with automated SMTP configuration for email testing via MailHog, a curated set of pre-installed plugins, and a default child theme based on a parent theme (default is Neve).  
 *Based on the excellent [wordpress-docker-compose](https://github.com/nezhar/wordpress-docker-compose) by [nezhar](https://github.com/nezhar).*
+
+---
+
+## Table of Contents
+
+- [Using This Template](#using-this-template)
+- [Features](#features)
+- [Access Your Development Environment](#access-your-development-environment)
+- [Customizing Your Environment](#customizing-your-environment)
+  - [Changing the Theme](#changing-the-theme)
+  - [Adding or Removing Pre-installed Plugins](#adding-or-removing-pre-installed-plugins)
+  - [How MailHog Works](#how-mailhog-works)
+- [Directory Structure](#directory-structure)
+- [Plugin & Theme Development](#plugin--theme-development)
+  - [Plugin Development](#plugin-development)
+  - [Theme Development](#theme-development)
+- [Cleanup](#cleanup)
+- [WSL2 and Other Users](#wsl2-and-other-users)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
+
+---
 
 ## Using This Template
 
 This is a template repository. To start a new project:
+1. Click the "Use this template" button at the top of this repository.
+2. Name your new project and create your repository.
+3. Clone your new repository:
+   ```bash
+   git clone https://github.com/YOUR-USERNAME/REPO-NAME.git
+   cd REPO-NAME
+   ```
+4. Review and edit `env.example` if you want to change any defaults (for example, WordPress admin email, username, or preferred theme).
+5. Run the setup script:
+   ```bash
+   chmod +x scripts/setup.sh
+   ./scripts/setup.sh
+   ```
+   **Note:** The setup script automatically creates a `.env` file from `env.example` (including secure, random passwords), so you do not have to create one manually.
 
-1. Click the "Use this template" button at the top of this repository
-2. Name your new project and create your repository
-3. Clone your new repository
-4. Copy the environment file: `cp env.example .env`
-5. Update the variables in `.env` with your preferred settings
-6. Run the setup script:
-```bash
-chmod +x scripts/setup.sh
-./scripts/setup.sh
-```
+---
 
 ## Features
 
-- WordPress with Apache
-- MySQL 5.7
-- phpMyAdmin
-- WP-CLI
-- MailHog for email testing
-- Automated SMTP configuration
-- Pre-installed theme and plugins
-- Child theme template
+- **WordPress with Apache:** Runs the latest WordPress with Apache and PHP settings from `config/wp_php.ini`.
+- **Database:** MySQL 5.7 with persistent data stored in `wp-data/`.
+- **phpMyAdmin:** Accessible at [http://localhost:8080](http://localhost:8080) for database administration.
+- **WP-CLI:** Automates tasks like installing WordPress core, themes, and plugins.
+- **MailHog:** Captures all outgoing emails for testing (access via [http://localhost:8025](http://localhost:8025)).
+- **Pre-installed Plugins:** A curated set of plugins (Advanced Custom Fields, WPForms Lite, Redirection, Google Site Kit, Query Monitor, WP-Optimize, Duplicate Post, and WP Mail SMTP configured for MailHog) installed automatically.
+- **Themes:** Neve is the default parent theme (configurable via the `env.example` file) with a pre-configured child theme located in the `child-theme/` directory. You can substitute any theme you wish.
+- **Helper Scripts:** 
+  - `scripts/setup.sh` initializes the environment, generates the `.env` file, and creates required directories.
+  - `scripts/teardown.sh` stops containers and removes persistent data from `wp-app/` and `wp-data/`.
+
+---
 
 ## Access Your Development Environment
 
-- WordPress: http://localhost:8000
-- WordPress Admin: http://localhost:8000/wp-admin
-- phpMyAdmin: http://localhost:8080
-- MailHog (Email Testing): http://localhost:8025
+- **WordPress Site:** [http://localhost:8000](http://localhost:8000)
+- **WordPress Admin:** [http://localhost:8000/wp-admin](http://localhost:8000/wp-admin)
+- **phpMyAdmin:** [http://localhost:8080](http://localhost:8080)
+- **MailHog (Email Testing):** [http://localhost:8025](http://localhost:8025)
 
-## Email Testing
+---
 
-This environment comes with MailHog pre-configured for email testing. All emails sent from WordPress will be automatically captured by MailHog and can be viewed at http://localhost:8025.
+## Customizing Your Environment
 
-## Pre-installed Components
+### Changing the Theme
 
-### Theme
-- Neve (with child theme template)
+- **Default Setting:** Neve is the default parent theme (set via the `WORDPRESS_PARENT_THEME` variable in `env.example`).
+- **To Use a Different Theme:**  
+  1. Edit `env.example` and update the `WORDPRESS_PARENT_THEME` value to your preferred theme's slug.
+  2. Update the `child-theme/style.css` file's `Template:` field if you wish to maintain a child theme.
+  3. Re-run `scripts/setup.sh` so the new settings (including the parent theme) are applied.
 
-### Plugins
-- Advanced Custom Fields
-- WPForms Lite
-- Redirection
-- Google Site Kit
-- Query Monitor
-- WP-Optimize
-- Duplicate Post
-- WP Mail SMTP (pre-configured for MailHog)
+### Adding or Removing Pre-installed Plugins
+
+The pre-installed plugins are automatically installed via the `wpcli` service's command in `docker-compose.yml`. To modify the list:
+1. Open `docker-compose.yml` and locate the command block in the `wpcli` service that installs plugins.
+2. You'll see a command like:
+   ```bash
+   wp plugin install advanced-custom-fields wpforms-lite redirection google-site-kit query-monitor wp-optimize duplicate-post wp-mail-smtp --activate --allow-root;
+   ```
+3. **To remove a plugin,** delete its slug from the list.
+4. **To add a plugin,** insert its slug into the list (ensure it matches the plugin's wordpress.org slug).
+5. Save your changes and re-run the containers (or run the updated WP-CLI commands manually).
+
+### How MailHog Works
+
+MailHog is set as your SMTP server. All outgoing emails from WordPress are intercepted and captured by MailHog, so you can test email functionality without sending real emails. View captured emails at:
+- [http://localhost:8025](http://localhost:8025)
+
+---
 
 ## Directory Structure
 
-- `wp-app/` - WordPress core files (generated)
-- `wp-data/` - MySQL data
-- `config/` - Configuration files
-  - `mu-plugins/` - Must-use plugins
-  - `wp-cli.yml` - WP-CLI configuration
-  - `mysql.cnf` - MySQL configuration
-  - `apache_servername.conf` - Apache configuration
-- `neve-child/` - Child theme template
+- **`wp-app/`** – Generated WordPress core files (populated on the first run)
+- **`wp-data/`** – MySQL data and related storage
+- **`config/`** – Configuration files:
+  - `mu-plugins/` – Must-use plugins
+  - `wp-cli.yml` – WP-CLI configuration
+  - `mysql.cnf` – MySQL server configuration
+  - `apache_servername.conf` – Apache configuration for setting ServerName
+- **`child-theme/`** – The pre-configured child theme directory
+- **`scripts/`** – Utility scripts:
+  - `setup.sh` – Initializes the environment (creates `.env`, sets up directories, starts Docker)
+  - `teardown.sh` – Stops Docker containers and removes persistent data (`wp-app/` and `wp-data/`)
 
-## Plugin Development
+---
 
-To develop a plugin, mount your plugin directory in docker-compose.yml:
+## Plugin & Theme Development
+
+### Plugin Development
+
+To develop a plugin, mount your plugin's directory in the `docker-compose.yml` file. For example:
 ```yaml
 volumes:
   - ./plugin-name/trunk/:/var/www/html/wp-content/plugins/plugin-name
 ```
+Any changes you make locally will be instantly reflected in the container.
 
-## Theme Development
+### Theme Development
 
-This environment comes with the Neve theme and a pre-configured child theme for immediate development.
+- Edit files in the `child-theme/` directory.
+- The child theme is mounted automatically, so changes are reflected immediately.
+- Use the WordPress Customizer to preview and adjust theme settings.
 
-### Using the Child Theme
-1. The child theme is automatically mounted and activated
-2. Edit files in the `neve-child` directory
-3. Changes are immediately reflected in your environment
-4. Use the WordPress Customizer for theme settings
+---
 
-## Clean Up
+## Cleanup
 
-To remove all containers and generated files:
+To fully remove all Docker containers and delete generated files, run:
 ```bash
 chmod +x scripts/teardown.sh
 ./scripts/teardown.sh
 ```
-
-## WSL2 Users
-
-No special configuration needed! File permissions are handled automatically.
-
-## Other Users
-
+Alternatively, you can use:
 ```bash
-docker-compose up -d
+docker-compose down -v
 ```
+**Note:** The teardown script also removes the `wp-app/` and `wp-data/` directories.
 
-Note: Non-WSL2 users may need to manage file permissions manually if encountering permission issues.
+---
+
+## WSL2 and Other Users
+
+- **WSL2 Users:** No special configuration is required; file permissions are automatically handled.
+- **Other Users:** If you encounter file permission issues, manually adjust permissions as needed.
+
+---
 
 ## Contributing
 
-Feel free to open issues or submit pull requests!
+Feel free to open issues or submit pull requests with your improvements.
+
+---
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.
+
+---
 
 ## Acknowledgments
 

@@ -33,7 +33,7 @@ This is a template repository. To start a new project:
 2. Name your new project and create your repository.
 3. Clone your new repository into a directory of your choice:
    ```bash
-   git clone https://github.com/hankdaugherty/wordpress-docker-template.git my-project
+   git clone https://github.com/hankdaugherty/wordpress-docker-dev-kit.git my-project
    cd my-project
    ```
 4. Review and edit `env.example` if you want to change any defaults (for example, WordPress admin email, username, or preferred theme).
